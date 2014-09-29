@@ -1,0 +1,81 @@
+# Exercise 3.12
+a. insert into course values ("CS-001", "Weekly Seminar", "Comp. Sci.", 0)
+
+b. insert into section(course_id, semester, year, sec_id) values ("CS-001", "Fall", 2009, 1)
+
+c. insert into takes select ID, "CS-001", 1, "Fall", 2009 from student where dept_name = "Comp. Sci."
+ 
+d. delete * from takes where ID in (select ID from student where name = "Chavez") and course_id = "CS-001" and sec_id = 1 
+
+e. delete from course where course_id = "CS-001". If this is deleted before deleting sections, those sections will no longer be identifiable.
+
+f. delete from section where lower(title) like '%database%'
+
+
+# Exercise 3.16
+a. select employee_name from works where company_name = "First Bank Corporation"
+
+b. select * from employee natural join works as E, company as C where E.company_name = C.company_name and E.city = C.city
+
+c. select employee.* from employee, manages where employee.city = (select city from employee where employee.employee_name = manages.manager_name)
+
+d. select employee.* from employee, works where (select salary from works where works.employee_name = employee.employee_name) > (select avg(salary) from works where company_name = (select company_name from works where employee_name = employee.employee_name))
+e. select distinct company.* from company, works where (select sum(salary) from works where works.company_name = company.company_name) >= all (select sum(salary) from works group by company_name)
+
+
+# Exercise 3.17
+a. update works set salary = salary * 1.10 where company_name = "First Bank Corporation"
+
+b. update works set salary = salary * 1.10 where company_name = "First Bank Corporation" and employee_name in (select manager_name from manages)
+
+c. delete from works where company_name = "Small Bank Corporation"
+
+
+# Exercise 4.14
+create view tot_credits (year, num_credits) as select year, sum(credits_by_year) from student natural join takes where credits_by_year = sum(total_cred from (select distinct ID, year as y, tot_cred where y = year))
+
+
+# Exercise 5.13
+a. You need to know the length of the fields, and how many there are. Otherwise, we won't be able to print nicely. Types would also help considerable, because Java is statically typed.
+
+b. This is a simple query, so the only methods needed are DriverManager.getConnection(), Connection.createStatement(), and Statement.executeQuery(). The rest of the work involves closing the connection and statement streams, but those aren't a part of the actual work of getting data from the database.
+
+c. static void printTable(String r) {
+       try {
+           Connection con = null;
+           Class.forName(/* DB-specific driver */);
+           con = DriverManager.getConnection(/* DB Address */);
+           Statement s = con.createStatement();
+           String query = "select * from " + r;
+           ResultSet result;
+           int columns;
+           do {
+               result = s.executeQuery(query);
+               more = result.next();
+               while (more) {
+                   // Get column data and print.
+               }
+           }
+           s.close();
+           con.close();
+       } catch (Exception e) { e.printStackTrace(); }
+   }
+
+
+# Exercise 5.15
+a. create function avg_salary(company_name varchar)
+       returns integer
+       begin
+       declare avg_salary integer;
+           select avg(salary) into avg_salary
+           from works
+           where works.company_name = company_name;
+       return avg_salary;
+       end
+
+   select company_name from works where avg_salary(works.company_name) > avg_salary("First Bank Corporation")
+
+b. select company_name from works group by company_name having avg(salary) > (select avg(salary) as avg_salary from works where company_name = "First Bank Corporation")
+
+# Exercise 5.22
+A limit on nesting of is valuable to avoid accidental infinite loops and issues with recursion.
