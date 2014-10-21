@@ -1,0 +1,33 @@
+Coming up with good heuristics is pretty difficult. It generally requires a
+thorough understanding of the game being played or the problem being solved.
+Considering the fact that I've never played Connect Four very seriously, even as
+a child, I had a difficult time coming up with anything. The most I could think
+of was that you should, all other things being equal, play at the center of the
+board. And close immediate threats.
+
+However, these seemed pretty simple, and I didn't think they'd be immensely
+effective. Per instructions, I persued the internet, looking for work people
+smarter than I had done. Turns out Connect Four (and by extension, Connect-K)
+has been solved, and people have written theses on the subject. I had neither
+the time nor desire to try to understand these. Eventually, I stumbled upon a
+short paper from UC Irvine. It was about five pages, so definitely digestable. 
+
+After reading it, I used a modified version of their heuristics in my code. In
+the paper, they tracked winning rows, which are described as rows where you have
+at least one piece and your opponent has none. I added columns, as it seemed
+like a prudent strategy. This turned out to be significantly better than a
+random player, winning around 90% of the games it played. But I felt I could do
+better.
+
+To improve performance, I added threat assessment and handling to the
+heuristic. Any state where the opposing player had three consecutive pieces in a
+row or column was considered suboptimal. Conversely, that was a state the max
+player would wish to have. Adding this to the heuristic actually had a
+detrimental effect. This may have been due to the slight redundancy incurred:
+checking for winning rows implicitly checks for these sequences.
+
+A final thought on how to improve the heuristic is a pretty straightforward one
+- check diagonals. However, I fear that this may incur too heavy of a
+performance penalty. Simple checking all the rows and columns takes O(n^2), on
+top of the dreadful performance of traversing the game tree. 90% seems to be a
+respectable performance level.
