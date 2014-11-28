@@ -174,8 +174,10 @@ easily outperformed by the previous algorithm.
 '''
 def moveRandomly(connectFourBoard):
     # Pick a random column.
-    column = random.randrange(0, 6)
-    connectFourBoard.move(column)
+    moveWorks = False
+    while (moveWorks == False):
+        column = random.randrange(0, 6)
+        moveWorks = connectFourBoard.move(column)
 
 # Magic happens here.
 def main(debug=True):

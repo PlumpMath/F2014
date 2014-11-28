@@ -35,7 +35,7 @@ class ConnectFour:
             print "\n"
 
     # Returns a copy of the board for heuristic purposes.  Player one's moves are represented as
-    # ones, player two's moves are represented as twos, and empty spaces are zeros.
+    # ones, player two's moves are represented as -1s, and empty spaces are zeros.
 
     def getBoard(self):
         temp = []
@@ -51,26 +51,26 @@ class ConnectFour:
         for i in range(max(col - 3, 0), min(col + 4, 7)):
             temp.append(self.board[row][i])
 
-        if self._longestSubsequence(temp) == 4:
+        if self._longestSubsequence(temp) >= 4:
             self.win = self.turn
         temp = []
         for i in range(max(row - 3, 0), min(row + 4, 6)):
             temp.append(self.board[i][col])
 
-        if self._longestSubsequence(temp) == 4:
+        if self._longestSubsequence(temp) >= 4:
             self.win = self.turn
         temp = []
 
         for i in self._getRange(row, col):
             temp.append(self.board[i[0]][i[1]])
-        if self._longestSubsequence(temp) == 4:
+        if self._longestSubsequence(temp) >= 4:
             self.win = self.turn
 
         temp = []
 
         for i in self._getRange2(row, col):
             temp.append(self.board[i[0]][i[1]])
-        if self._longestSubsequence(temp) == 4:
+        if self._longestSubsequence(temp) >= 4:
             self.win = self.turn
         
     def _getRange(self, row, col):
@@ -123,7 +123,7 @@ class ConnectFour:
             for j in range(0, len(self.board[0])):
                 if self.board[i][j] == 0:
                     return self.won() != 0
-        return False
+        return True
 
     # Returns a copy of this connect four board.
 
@@ -139,48 +139,11 @@ class ConnectFour:
 
     def expand(self):
         listOBoards = []
-        #print len(self.board[0])
+        print len(self.board[0])
         for i in range(0, len(self.board[0])):
             newBoard = self.copy()
-            #print i
+            print i
             if newBoard.move(i):
                 listOBoards.append(newBoard)
         return listOBoards
 
-
-def main():
-    c = ConnectFour()
-    c.move(4)
-    c.out()
-
-    c.move(3)
-    c.out()
-
-    c.move(3)
-    c.out()
-
-    c.move(2)
-    c.out()
-
-    c.move(2)
-    c.out()
-
-    c.move(1)
-    c.out()
-
-    c.move(2)
-    c.out()
-
-    c.move(1)
-    c.out()
-    c.move(1)
-    c.out()
-    c.move(5)
-    c.out()
-    c.move(1)
-    c.out()
-
-    print c.won()
-
-if __name__ == "__main__":
-    main()
