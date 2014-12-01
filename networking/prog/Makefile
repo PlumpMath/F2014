@@ -1,5 +1,5 @@
 dijkstra:
-	gcc -o dijkstra dijkstra.c priorityQueue.c
+	gcc -o dijkstra dijkstra.c heap.c
 clean:
 	rm -f dijkstra *.o
 rebuild:

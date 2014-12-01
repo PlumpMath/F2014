@@ -1,6 +1,34 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "priorityQueue.h"
+#include "heap.h"
+#include <assert.h>
+
+#ifndef INFINITY
+#define INFINITY 65535
+#endif
+
+struct linked_list_elem {
+    int value;
+    struct linked_list_elem * next;
+};
+
+typedef struct linked_list_elem linked_list_elem;
+
+linked_list_elem * newLinkedList() {
+    linked_list_elem * node = malloc(sizeof(linked_list_elem *) * 2);
+    node->next = NULL;
+
+    return node;
+}
+
+void freeLinkedList(linked_list_elem * node) {
+    while(node->next != NULL) {
+        linked_list_elem * temp = node;
+        node = node->next;
+        free(temp);
+    }
+    free(node);
+}
 
 /**
  * Reads an input file and produces an adjacency matrix showing the connections
@@ -41,7 +69,7 @@ int ** readInputFile(char * filename, int * length_ptr, int * start, int * goal)
 
     for (i = 0; i < highest; i++) {
         for (j = 0; j < highest; j++) {
-            matrix[i][j] = -1;
+            matrix[i][j] = INFINITY;
         }
     }
 
@@ -103,29 +131,75 @@ void printMatrix(int ** matrix, int length) {
  * @args goal: the num value of the node in the graph that you want to get to.
  * @return a list of ints showing the shortest path from start to goal.
  */
-int * dijkstra(int ** matrix, int start, int goal, int length) {
-    priority_queue pq = priq_new(length);
+linked_list_elem * dijkstra(int ** matrix, int start, int goal, int length) {
+    assert(start < length);
 
-    // Find start node, get children, push into queue.
-    int i, weight;
+    // Start path. Stored as a linked list.
+    linked_list_elem * path = newLinkedList();
+    path->value = start;
+
+    Heap * pq = newHeap(length);
+    Heap * old = newHeap(length);
+
+    int dist[length]; // Array of distances from start;
+    dist[start - 1] = 0;
+
+    int i, alt, pri;
+    // Get nodes connected to start, add to queue.
     for (i = 1; i <= length; i++) {
-        if (matrix[start - 1][i - 1] != -1) {
-            weight = matrix[start-1][i-1];
-            printf("There is an edge from %d to %d with a weight of %d\n", start, i, weight);
-            void * data_ptr = &i;
-            priq_push(pq, data_ptr, weight);
+        if (i != start) {
+            dist[i - 1] = INFINITY;
         }
     }
 
-    int priority;
+    insertValue(pq, start, 0);
 
-    printf("Elements in queue: %d\n", priq_size(pq));
-    int data = *(int*)priq_top(pq, &priority);
-    printf("Minimum value is %d with a weight of %d\n", data, priority);
-    printf("Elements in queue: %d\n", priq_size(pq));
+    while (getCount(pq) != 0) {
+        // Pop the first element off the queue.
+        heap_elem u = popMinValue(pq);
+        printf("Element u has data %d and priority %d\n", u.data, u.priority);
+        printf("%d elements left in queue.\n", getCount(pq));
+        addElement(old, u);
 
-    free(pq->buffer);
-    free(pq);
+        // Get connected nodes, add to queue.
+        for (i = 1; i <= length; i++) {
+            pri = matrix[u.data - 1][i - 1];
+            if (pri != INFINITY) {
+                if (elementInHeap(old, i - 1) == 0) {
+                    if (dist[u.data] == INFINITY)
+                        alt = u.priority;
+                    else
+                        alt = dist[u.data] + u.priority;
+
+                    if (alt < dist[u.data]) {
+                        dist[u.data] = alt;
+                        // Create new path element.
+                        linked_list_elem * node = path;
+
+                        while(node->next != NULL) {
+                            node = node->next;
+                        }
+
+                        node->next = newLinkedList();
+                        node = node->next;
+                        node->value = u.data;
+                    }
+
+                    insertValue(pq, i, pri);
+                    printf("Updated node %d with priority %d\n", i, pri);
+                } else if (elementInHeap(old, i - 1) == 1) {
+                    updatePriority(pq, i, pri);
+                    printf("Updated node %d with new priority %d\n", i, pri);
+                }
+            }
+        }
+    }
+
+
+    // Clean up the memory.
+    freeHeap(pq);
+    freeHeap(old);
+    return path;
 }
 
 void main(int args, char** argv) {
@@ -149,7 +223,14 @@ void main(int args, char** argv) {
     weightMatrix = readInputFile(filename, length_ptr, start_ptr, goal_ptr);
 
     // Perform Dijkstra's, output results.
-    int * path = dijkstra(weightMatrix, start, goal, length);
+    linked_list_elem * path = dijkstra(weightMatrix, start, goal, length);
+
+    linked_list_elem * node = path;
+    while(node->next != NULL) {
+        printf("%d -> ", node->value);
+        node = node->next;
+    }
+    printf("%d\n", node->value);
 
     // Free memory.
     int i;
@@ -158,6 +239,7 @@ void main(int args, char** argv) {
     }
 
     free(weightMatrix);
+    freeLinkedList(path);
 
     exit(0);
 }
