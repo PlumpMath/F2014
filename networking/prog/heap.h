@@ -1,16 +1,21 @@
 #include <stdlib.h>
 
-struct Heap {
-  int size;
-  void * values;
-};
+typedef struct {
+  int data;
+  int priority;
+} heap_elem;
 
-struct Heap * newHeap();
-void freeHeap(struct Heap * heap);
-int getSize(struct Heap * heap);
-void heapifyUp(struct Heap * heap);
-void heapifyDown(struct Heap * heap);
-void increaseHeapSize(struct Heap * heap);
-void insertValue(struct Heap * heap, void * value);
-int getMinValue(struct Heap * heap);
-int popMinValue(struct Heap * heap);
+typedef struct  {
+  int size, alloc;
+  heap_elem * elements;
+} Heap;
+
+Heap * newHeap();
+void freeHeap(Heap * heap);
+int getSize(Heap * heap);
+void heapifyUp(Heap * heap);
+void heapifyDown(Heap * heap);
+void increaseHeapSize(Heap * heap);
+void insertValue(Heap * heap, int value, int priority);
+heap_elem getMinValue(Heap * heap);
+heap_elem popMinValue(Heap * heap);

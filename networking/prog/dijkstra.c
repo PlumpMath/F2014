@@ -10,7 +10,7 @@
  *       out of the function.
  * @return A 2D array of ints (an adjacency matrix) representing the graph.
  */
-int ** readInputFile(char * filename, int * length_ptr) {
+int ** readInputFile(char * filename, int * length_ptr, int * start, int * goal) {
     FILE * infile;
     infile = fopen(filename, "r");
 
@@ -47,32 +47,21 @@ int ** readInputFile(char * filename, int * length_ptr) {
 
     // Read node data.
     while (fscanf(infile, "%d$%d$%d", &node1, &node2, &weight) == 3) {
-        matrix[node1][node2] = weight;
+        matrix[node1 - 1][node2 - 1] = weight;
     }
 
     // Read source.
     while (fscanf(infile, "Source$%d\n", &source) == 1) {
-        //fprintf(stdout, "Source: %d\n", source);
+        *start = source;
     }
 
     while (fscanf(infile, "Destination$%d\n", &destination) == 1) {
-        //fprintf(stdout, "Destination: %d\n", destination);
+        *goal = destination;
     }
 
     fclose(infile);
 
     return matrix;
-}
-
-/**
- * Implementation of Dijkstra's Algorithm.
- * @args matrix: the graph that you want to explore, implemented as an adjacency list.
- * @args start: the num value of the node in the graph that you want to start at.
- * @args goal: the num value of the node in the graph that you want to get to.
- * @return a list of ints showing the shortest path from start to goal.
- */
-int * dijkstra(int ** matrix, int start, int goal) {
-
 }
 
 /**
@@ -107,6 +96,38 @@ void printMatrix(int ** matrix, int length) {
     }
 }
 
+/**
+ * Implementation of Dijkstra's Algorithm.
+ * @args matrix: the graph that you want to explore, implemented as an adjacency list.
+ * @args start: the num value of the node in the graph that you want to start at.
+ * @args goal: the num value of the node in the graph that you want to get to.
+ * @return a list of ints showing the shortest path from start to goal.
+ */
+int * dijkstra(int ** matrix, int start, int goal, int length) {
+    priority_queue pq = priq_new(length);
+
+    // Find start node, get children, push into queue.
+    int i, weight;
+    for (i = 1; i <= length; i++) {
+        if (matrix[start - 1][i - 1] != -1) {
+            weight = matrix[start-1][i-1];
+            printf("There is an edge from %d to %d with a weight of %d\n", start, i, weight);
+            void * data_ptr = &i;
+            priq_push(pq, data_ptr, weight);
+        }
+    }
+
+    int priority;
+
+    printf("Elements in queue: %d\n", priq_size(pq));
+    int data = *(int*)priq_top(pq, &priority);
+    printf("Minimum value is %d with a weight of %d\n", data, priority);
+    printf("Elements in queue: %d\n", priq_size(pq));
+
+    free(pq->buffer);
+    free(pq);
+}
+
 void main(int args, char** argv) {
     // Get filename from args.
     char * filename;
@@ -118,13 +139,17 @@ void main(int args, char** argv) {
     }
 
     int ** weightMatrix;
-    int length = 0;
-    int * length_ptr;
+    int length = 0, start = 0, goal = 0;
+    int * length_ptr, *start_ptr, *goal_ptr;
 
     length_ptr = &length;
-    weightMatrix = readInputFile(filename, length_ptr);
+    start_ptr = &start;
+    goal_ptr = &goal;
+
+    weightMatrix = readInputFile(filename, length_ptr, start_ptr, goal_ptr);
 
     // Perform Dijkstra's, output results.
+    int * path = dijkstra(weightMatrix, start, goal, length);
 
     // Free memory.
     int i;
