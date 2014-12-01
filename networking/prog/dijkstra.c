@@ -136,7 +136,7 @@ linked_list_elem * dijkstra(int ** matrix, int start, int goal, int length) {
 
     // Start path. Stored as a linked list.
     linked_list_elem * path = newLinkedList();
-    path->value = start;
+    path->value = 0;
 
     Heap * pq = newHeap(length);
     Heap * old = newHeap(length);
@@ -174,19 +174,22 @@ linked_list_elem * dijkstra(int ** matrix, int start, int goal, int length) {
                     if (alt < dist[u.data]) {
                         dist[u.data] = alt;
                         // Create new path element.
-                        linked_list_elem * node = path;
+                        if (path->value == 0) path->value = u.data;
+                        else {
+                            linked_list_elem * node = path;
 
-                        while(node->next != NULL) {
+                            while(node->next != NULL) {
+                                node = node->next;
+                            }
+
+                            node->next = newLinkedList();
                             node = node->next;
+                            node->value = u.data;
                         }
-
-                        node->next = newLinkedList();
-                        node = node->next;
-                        node->value = u.data;
                     }
 
                     insertValue(pq, i, pri);
-                    printf("Updated node %d with priority %d\n", i, pri);
+                    printf("Inserted node %d with priority %d\n", i, pri);
                 } else if (elementInHeap(old, i - 1) == 1) {
                     updatePriority(pq, i, pri);
                     printf("Updated node %d with new priority %d\n", i, pri);

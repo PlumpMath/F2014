@@ -34,7 +34,8 @@ create table student (
   foreign key (user_id)
     references user(id)
     on delete cascade,
-  grad_year year(4),
+  year int,
+  student_type varchar(10),
   birthdate date,
   university_id int not null,
   foreign key (university_id)

@@ -14,6 +14,7 @@ Heap * newHeap();
 void freeHeap(Heap * heap);
 int getSize(Heap * heap);
 int getCount(Heap * heap);
+int elementInHeap(Heap * heap, int data);
 void heapifyUp(Heap * heap);
 void heapifyDown(Heap * heap);
 void increaseHeapSize(Heap * heap);

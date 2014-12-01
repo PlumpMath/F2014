@@ -41,15 +41,210 @@ public class JDBCInterface {
                              "21. For each student, list the books that are recommended based on our definition of a " +
                              "recommendation.\n" +
                              "22. For each book, list the total sum of students that have purchased books with at least one " +
-                             "keyword in common with the book." +
+                             "keyword in common with the book.\n" +
                              "23. List books by ratings and by number of students who rated." +
                              "24. List books with a rating of 5 and the students who rated the books and their universities.\n";
 
-    public static void main(String args[]) {
+    static final String JDBC_DRIVER = "com.mysql.jdbc.driver";
+
+    private Connection getConnection(String username, String password, String database) {
+        Connection connection = null;
+        try {
+            System.out.println("Testing driver...");
+            Class.forName(JDBC_DRIVER);
+        } catch (ClassNotFoundException e) {
+            System.err.println("FAILURE:: JDBC Driver cannot be found!");
+            e.printStackTrace();
+            System.exit(-1);
+        }
+
+        try {
+            String dburl = "jbdc:mysql://localhost/" + database + "?user=" + username + "&password=" + password;
+            System.out.println("Establishing connection...");
+            connection = DriverManager.getConnection(dburl, username, password);
+        } catch (SQLException e) {
+
+        }
+
+        return connection;
+    }
+
+    public static void clearConsole() {
+        System.out.print("\033[H\033[2J");
+    }
+
+    public static void mainPrompt() {
+        clearConsole();
+        System.out.println("Bookfetch Inc. Database Access");
+        System.out.println(
+        "Select a module:\n" +
+        "\t1) Students\n" +
+        "\t2) Customer Service\n" +
+        "\t3) Administrator\n" +
+        "\t4) Queries\n" +
+        "\t5) Quit"
+        );
+
+        Scanner in = new Scanner(System.in);
+        System.out.print("> ");
+        String input = in.next();
+
+        switch (input) {
+            case "1":
+                // Student module
+                clearConsole();
+                studentModule();
+                break;
+            case "2":
+                // Customer service module
+                clearConsole();
+                customerServiceModule();
+                break;
+            case "3":
+                // Administrator module
+                clearConsole();
+                administratorModule();
+                break;
+            case "4":
+                // Queries
+                clearConsole();
+                queryModule();
+                break;
+            case "5":
+            case "q":
+            case "Q":
+            case "QUIT":
+            case "quit":
+            case "Quit":
+                System.out.println("Goodbye.");
+                System.exit(0);
+                break;
+            default:
+                break;
+        }
+    }
+
+    public static void studentModule() {
+        System.out.println(
+        "Student Module:\n" +
+        "\t1) Create a new student\n" +
+        "\t2) Create a new cart for a user\n" +
+        "\t3) Create a new order from a cart\n" +
+        "\t4) Create a new book review\n" +
+        "\t5) BACK to main menu");
+
+        Scanner in = new Scanner(System.in);
+
+        while(true) {
+            System.out.print("> ");
+
+            String input = in.next();
+
+            switch (input) {
+                case "1":
+                    System.out.println("Not implemented yet.");
+                    break;
+                case "2":
+                    System.out.println("Not implemented yet.");
+                    break;
+                case "3":
+                    System.out.println("Not implemented yet.");
+                    break;
+                case "4":
+                    System.out.println("Not implemented yet.");
+                    break;
+                case "5":
+                case "b":
+                case "B":
+                case "BACK":
+                case "back":
+                    mainPrompt();
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    public static void customerServiceModule() {
+        System.out.println(
+        "Customer Service Module:\n" +
+        "\t1) New Trouble Ticket\n" +
+        "\t2) Cancel an order\n" +
+        "\t3) BACK to main menu");
+
+        Scanner in = new Scanner(System.in);
+
+        while(true) {
+            System.out.print("> ");
+
+            String input = in.next();
+
+            switch (input) {
+                case "1":
+                    System.out.println("Not implemented yet.");
+                    break;
+                case "2":
+                    System.out.println("Not implemented yet.");
+                    break;
+                case "3":
+                case "b":
+                case "B":
+                case "BACK":
+                case "back":
+                    mainPrompt();
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    public static void administratorModule() {
+        System.out.println(
+        "Administrators:\n" +
+        "\t1) Add a new book to the inventory\n" +
+        "\t2) Add a new university with department, courses and book associations\n" +
+        "\nSuper Administrator:\n" +
+        "\t3) Add a new customer service employee\n" +
+        "\nOther:\n" +
+        "\t4) BACK to main menu");
+
+        Scanner in = new Scanner(System.in);
+
+        while(true) {
+            System.out.print("> ");
+
+            String input = in.next();
+
+            switch (input) {
+                case "1":
+                    System.out.println("Not implemented yet.");
+                    break;
+                case "2":
+                    System.out.println("Not implemented yet.");
+                    break;
+                case "3":
+                    System.out.println("Not implemented yet.");
+                    break;
+                case "4":
+                case "b":
+                case "B":
+                case "BACK":
+                case "back":
+                    mainPrompt();
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    public static void queryModule() {
+        System.out.println("Enter a query 1 - 24, or HELP or BACK.");
         Scanner in = new Scanner(System.in);
         while (true) {
             // Display queries
-            System.out.println("Pick a query from 1 to 24, or enter HELP for directions, Q to quit.");
             System.out.print("> ");
 
             String input = in.next();
@@ -81,22 +276,29 @@ public class JDBCInterface {
                 case "24":
                     System.out.println("Case " + input);
                     break;
+                case "h":
+                case "H":
+                case "help":
                 case "HELP":
                     System.out.println("Here is a list of the queries by number:");
                     System.out.println(queries);
                     break;
-                case "Q":
-                case "q":
-                case "quit":
-                case "QUIT":
-                    System.out.println("Goodbye.");
-                    System.exit(0);
+                case "B":
+                case "b":
+                case "back":
+                case "BACK":
+                    mainPrompt();
                     break;
                 default:
+                    System.err.println("Invalid option. Please try again.");
                     break;
             }
-
         }
+    }
 
+    public static void main(String args[]) {
+
+        // Establish connection to DB.
+        mainPrompt();
     }
 }
