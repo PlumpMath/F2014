@@ -9,6 +9,7 @@
 
 struct linked_list_elem {
     int value;
+    int priority;
     struct linked_list_elem * next;
 };
 
@@ -97,8 +98,27 @@ int ** readInputFile(char * filename, int * length_ptr, int * start, int * goal)
  * of nodes traversed, which were traversed and the total distance travelled.
  * @args filename: the name of the file to output to.
  */
-void printSummary(char * filename) {
+void printSummary(char * filename, int source, int destination, linked_list_elem * path) {
+    FILE * outfile;
+    int totalDist = 0;
 
+    outfile = fopen(filename, "w");
+
+    fprintf(outfile, "%s\n", "------------------------------");
+    fprintf(outfile, "Summary:\n");
+    fprintf(outfile, "Source: %d, Destination: %d\n", source, destination);
+    fprintf(outfile, "Traversal: ");
+    while (path->next != NULL) {
+        fprintf(outfile, "%d -> ", path->value);
+        path = path->next;
+        totalDist += path->priority;
+    }
+    fprintf(outfile, "%d\n", path->value);
+
+    fprintf(outfile, "Total distance: %d\n", totalDist);
+    fprintf(outfile, "%s\n", "------------------------------");
+
+    fclose(outfile);
 }
 
 /**
@@ -174,8 +194,10 @@ linked_list_elem * dijkstra(int ** matrix, int start, int goal, int length) {
                     if (alt < dist[u.data]) {
                         dist[u.data] = alt;
                         // Create new path element.
-                        if (path->value == 0) path->value = u.data;
-                        else {
+                        if (path->value == 0) {
+                            path->value = u.data;
+                            path->priority = u.priority;
+                        } else {
                             linked_list_elem * node = path;
 
                             while(node->next != NULL) {
@@ -185,6 +207,7 @@ linked_list_elem * dijkstra(int ** matrix, int start, int goal, int length) {
                             node->next = newLinkedList();
                             node = node->next;
                             node->value = u.data;
+                            node->priority = u.priority;
                         }
                     }
 
@@ -205,14 +228,14 @@ linked_list_elem * dijkstra(int ** matrix, int start, int goal, int length) {
     return path;
 }
 
-void main(int args, char** argv) {
+int main(int args, char** argv) {
     // Get filename from args.
     char * filename;
     if (argv[1] != NULL) {
         filename = argv[1];
     } else {
         fprintf(stderr, "No filename given. Aborting!\n");
-        exit(1);
+        return 1;
     }
 
     int ** weightMatrix;
@@ -228,12 +251,7 @@ void main(int args, char** argv) {
     // Perform Dijkstra's, output results.
     linked_list_elem * path = dijkstra(weightMatrix, start, goal, length);
 
-    linked_list_elem * node = path;
-    while(node->next != NULL) {
-        printf("%d -> ", node->value);
-        node = node->next;
-    }
-    printf("%d\n", node->value);
+    printSummary("output.txt", start, goal, path);
 
     // Free memory.
     int i;
@@ -244,5 +262,5 @@ void main(int args, char** argv) {
     free(weightMatrix);
     freeLinkedList(path);
 
-    exit(0);
+    return 0;
 }

@@ -157,7 +157,12 @@ def create_instructors():
         sqlfile.write("\n")
 
 def create_book_ids():
-    pass
+    with open('student.csv') as csvfile, open('data_insertion.sql', 'a') as sqlfile:
+        sqlfile.write("insert into book_id (title, isbn, isbn_13) values\n")
+
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            sqlfile.write("(" + ")")
 
 def create_books():
     pass
