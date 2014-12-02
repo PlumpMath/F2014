@@ -56,11 +56,11 @@ create table book_order (
   foreign key (student_id)
     references student(user_id)
     on delete cascade,
-  date_created timestamp not null,
-  date_fulfilled timestamp,
+  date_created date not null,
+  date_fulfilled date,
   shipping_type varchar(10),
   cc_number numeric(16),
-  cc_expiration numeric(4),
+  cc_expiration date,
   cc_name varchar(200),
   cc_type varchar(20),
   order_status varchar(20)
@@ -70,7 +70,7 @@ create table department (
   id int auto_increment not null,
   primary key (id),
   name varchar(200),
-  university_id int,
+  university_id int not null,
   foreign key (university_id)
     references university(id)
 );
@@ -159,7 +159,7 @@ create table subcategory (
   subcategory_name varchar(200)
 );
 
-create table keywords (
+create table keyword (
   book_id int,
   foreign key (book_id)
     references book(id),

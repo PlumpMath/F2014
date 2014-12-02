@@ -95,6 +95,99 @@ def create_carts():
 
         sqlfile.write("\n")
 
+def create_orders():
+    with open('student.csv') as csvfile, open('data_insertion.sql', 'a') as sqlfile:
+        sqlfile.write("insert into book_order (student_id, date_created, date_fulfilled, " +
+        "shipping_type, cc_number, cc_expiration, cc_name, cc_type, order_status) values\n")
+
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            sqlfile.write("(" +
+            "(select id from user where first_name = \"" + row['First_name'] + "\" and last_name = \"" + row['Last_name'] + "\"), " +
+            '-'.join(row['ORDER_date_created'].split("/")) + ", " +
+            '-'.join(row['ORDER_date_completed'].split("/")) + ", " +
+            "\"" + row['ORDER_ship_type'] + "\", " +
+            row['ORDER_credit_card'] + ", " +
+            '-'.join(row['ORDER_creditcard_expiry'].split("/")) + ", " +
+            "\"" + row['ORDER_creditcard_name'] + "\", " +
+            "\"" + row['ORDER_creditcard_type'] + "\", " +
+            "\"" + row['ORDER_status'] + "\"" +
+            "),\n")
+
+        sqlfile.write("\n")
+
+def create_departments():
+    with open('student.csv') as csvfile, open('data_insertion.sql', 'a') as sqlfile:
+        sqlfile.write("insert into department (name, university_id) values\n")
+
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            sqlfile.write("(" +
+            "\"" + row['major'] + "\", " +
+            "(select id from university where name = \"" + row['University'] + "\")"
+            "),\n")
+
+        sqlfile.write("\n")
+
+    with open('teacher.csv') as csvfile, open('data_insertion.sql', 'a') as sqlfile:
+        sqlfile.write("insert into department (name, university_id) values\n")
+
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            sqlfile.write("(" +
+            "\"" + row['Department'] + "\", " +
+            "(select id from university where name = \"" + row['University'] + "\")"
+            "),\n")
+
+        sqlfile.write("\n")
+
+def create_instructors():
+    with open('teacher.csv') as csvfile, open('data_insertion.sql', 'a') as sqlfile:
+        sqlfile.write('insert into instructor (first_name, last_name, dept_id, university_id) values\n')
+
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            sqlfile.write("(" +
+            "\"" + row['instructor_fname'] + "\", " +
+            "\"" + row['instructor_lname'] + "\", " +
+            "(select id from department where name = \"" + row['Department'] + "\"), " +
+            "(select id from university where name = \"" + row['University'] + "\")"
+            "),\n")
+
+        sqlfile.write("\n")
+
+def create_book_ids():
+    pass
+
+def create_books():
+    pass
+
+def create_purchases():
+    pass
+
+def create course():
+    pass
+
+def create_category():
+    pass
+
+def create_subcategory():
+    pass
+
+def create_keyword():
+    pass
+
+def create_employees():
+    pass
+
+def create_tickets():
+    pass
+
+def create_modifications():
+    pass
+
+def create_recommendations():
+    pass
 
 def main():
     create_users()
@@ -102,5 +195,8 @@ def main():
     create_universities()
     create_students()
     create_carts()
+    create_orders()
+    create_departments()
+    create_instructors()
 
 main()
