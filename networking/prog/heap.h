@@ -3,23 +3,23 @@
 typedef struct {
   int data;
   int priority;
-} heap_elem;
+} heap_elem_t;
 
 typedef struct  {
   int size, alloc;
-  heap_elem * elements;
-} Heap;
+  heap_elem_t * elements;
+} heap_t;
 
-Heap * newHeap();
-void freeHeap(Heap * heap);
-int getSize(Heap * heap);
-int getCount(Heap * heap);
-int elementInHeap(Heap * heap, int data);
-void heapifyUp(Heap * heap);
-void heapifyDown(Heap * heap);
-void increaseHeapSize(Heap * heap);
-void insertValue(Heap * heap, int value, int priority);
-void addElement(Heap * heap, heap_elem element);
-void updatePriority(Heap * heap, int value, int priority);
-heap_elem getMinValue(Heap * heap);
-heap_elem popMinValue(Heap * heap);
+heap_t * newHeap();
+void freeHeap(heap_t * heap);
+int getSize(heap_t * heap);
+int getCount(heap_t * heap);
+int elementInHeap(heap_t * heap, int data);
+void heapifyUp(heap_t * heap);
+void heapifyDown(heap_t * heap);
+void increaseHeapSize(heap_t * heap);
+void insertValue(heap_t * heap, int value, int priority);
+void addElement(heap_t * heap, heap_elem_t element);
+void updatePriority(heap_t * heap, int value, int priority);
+heap_elem_t getMinValue(heap_t * heap);
+heap_elem_t popMinValue(heap_t * heap);

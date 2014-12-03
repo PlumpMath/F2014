@@ -2,9 +2,13 @@ Readme for Dijkstra's algorithm project.
 
 Implemented in C.
 
-Currently unfinished. Implemented a priority queue to track nodes. Dijkstra's
-implementation does not return proper output.
+Finished. Implements proper Dijkstra's algorithm.
 
-Summary is printed to output.txt. Routing tables are not implemented.
+Summary and routing tables are printed to output.txt.
 
 Attached is a simple Makefile to compile the code.
+
+To build:                 make
+To rebuild:               make rebuild
+To remove compiled files: make clean
+To run:                   ./dijkstra graph.txt

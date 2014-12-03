@@ -3,40 +3,40 @@
 #include <assert.h>
 #include "heap.h"
 
-Heap * newHeap() {
-    Heap * heap = malloc(sizeof(Heap));
+heap_t * newHeap() {
+    heap_t * heap = malloc(sizeof(heap_t));
     heap->size = 4;
     heap->alloc = 0;
-    heap->elements = malloc(sizeof(heap_elem) * heap->size);
+    heap->elements = malloc(sizeof(heap_elem_t) * heap->size);
 
     return heap;
 }
 
-void freeHeap(Heap * heap) {
+void freeHeap(heap_t * heap) {
     // Free values memory.
     free(heap->elements);
     free(heap);
 }
 
-int getSize(Heap * heap) {
+int getSize(heap_t * heap) {
     return heap->size;
 }
 
-int getCount(Heap * heap) {
+int getCount(heap_t * heap) {
     return heap->alloc;
 }
 
 /**
  * Enforces the min heap conditions after an insert or removal.
  */
-void heapifyUp(Heap * heap) {
+void heapifyUp(heap_t * heap) {
     // Check value in final slot.
     int index = heap->alloc - 1, parent;
 
     while (index > 0) {
         parent = (index - 1) / 2;
         if (heap->elements[index].priority < heap->elements[parent].priority) {
-            heap_elem temp = heap->elements[index];
+            heap_elem_t temp = heap->elements[index];
             heap->elements[index] = heap->elements[parent];
             heap->elements[parent] = temp;
 
@@ -47,9 +47,9 @@ void heapifyUp(Heap * heap) {
     }
 }
 
-void heapifyDown(Heap * heap) {
+void heapifyDown(heap_t * heap) {
     int index = 0, c1, c2;
-    heap_elem current, c1_val, c2_val;
+    heap_elem_t current, c1_val, c2_val;
 
     // Loop through allocated indices only.
     while(index < heap->alloc) {
@@ -66,7 +66,7 @@ void heapifyDown(Heap * heap) {
         if (c1 < heap->alloc - 1 && c2 < heap->alloc - 1) {
             if (current.priority < c1_val.priority && current.priority >= c2_val.priority) {
                 // Swap index w/ c1.
-                heap_elem temp = heap->elements[c1];
+                heap_elem_t temp = heap->elements[c1];
                 heap->elements[c1] = current;
                 heap->elements[index] = temp;
 
@@ -74,7 +74,7 @@ void heapifyDown(Heap * heap) {
 
             } else if (current.priority >= c1_val.priority && current.priority < c2_val.priority) {
                 // Swap index w/ c2.
-                heap_elem temp = heap->elements[c2];
+                heap_elem_t temp = heap->elements[c2];
                 heap->elements[c2] = current;
                 heap->elements[index] = temp;
 
@@ -86,11 +86,11 @@ void heapifyDown(Heap * heap) {
             } else if (current.priority >= c1_val.priority && current.priority >= c2_val.priority) {
                 // Pick whichever is smaller.
                 if (c1_val.priority < c2_val.priority) {
-                    heap_elem temp = heap->elements[c1];
+                    heap_elem_t temp = heap->elements[c1];
                     heap->elements[c1] = current;
                     heap->elements[index] = temp;
                 } else {
-                    heap_elem temp = heap->elements[c2];
+                    heap_elem_t temp = heap->elements[c2];
                     heap->elements[c2] = current;
                     heap->elements[index] = temp;
                 }
@@ -99,7 +99,7 @@ void heapifyDown(Heap * heap) {
         } else if (c2 >= heap->alloc && c1 < heap->alloc) {
             // Don't check c2. Doesn't exist yet.
             if (current.priority > heap->elements[c1].priority) {
-                heap_elem temp = heap->elements[c1];
+                heap_elem_t temp = heap->elements[c1];
                 heap->elements[c1] = heap->elements[index];
                 heap->elements[index] = temp;
 
@@ -118,17 +118,17 @@ void heapifyDown(Heap * heap) {
  * Increments the heap size by 1. Used if you are inserting more items than the heap
  * can currently hold.
  */
-void increaseHeapSize(Heap * heap) {
+void increaseHeapSize(heap_t * heap) {
     // Increment heap size.
     heap->size *= 2;
-    heap->elements = realloc(heap->elements, sizeof(heap_elem) * heap->size);
+    heap->elements = realloc(heap->elements, sizeof(heap_elem_t) * heap->size);
 }
 
 /**
  * Insert a value into the heap. Calls increaseHeapSize if it would exceed
  * size of backing array.
  */
-void insertValue(Heap * heap, int value, int priority) {
+void insertValue(heap_t * heap, int value, int priority) {
     // Check if we can insert to bottom.
     int index = heap->alloc++;
     if (index >= heap->size) {
@@ -136,7 +136,7 @@ void insertValue(Heap * heap, int value, int priority) {
         increaseHeapSize(heap);
     }
 
-    heap_elem he;
+    heap_elem_t he;
     he.data = value;
     he.priority = priority;
     heap->elements[index] = he;
@@ -144,11 +144,11 @@ void insertValue(Heap * heap, int value, int priority) {
     heapifyUp(heap);
 }
 
-void addElement(Heap * heap, heap_elem element) {
+void addElement(heap_t * heap, heap_elem_t element) {
     insertValue(heap, element.data, element.priority);
 }
 
-int elementInHeap(Heap * heap, int data) {
+int elementInHeap(heap_t * heap, int data) {
     int i;
     for (i = 0; i < heap->alloc; i++) {
         if (heap->elements[i].data == data) {
@@ -161,14 +161,14 @@ int elementInHeap(Heap * heap, int data) {
 /**
  * Return the minimum value from the heap without removing it.
  */
-heap_elem getMinValue(Heap * heap) {
+heap_elem_t getMinValue(heap_t * heap) {
     return heap->elements[0];
 }
 
-void updatePriority(Heap * heap, int value, int priority) {
+void updatePriority(heap_t * heap, int value, int priority) {
     // Find node with data = value.
     int i;
-    heap_elem elem;
+    heap_elem_t elem;
 
     for (i = 0; i < heap->alloc; i++) {
         elem = heap->elements[i];
@@ -181,8 +181,8 @@ void updatePriority(Heap * heap, int value, int priority) {
 /**
  * Return the minimum value from the heap AND remove it.
  */
-heap_elem popMinValue(Heap * heap) {
-    heap_elem min = heap->elements[0];
+heap_elem_t popMinValue(heap_t * heap) {
+    heap_elem_t min = heap->elements[0];
     heap->elements[0] = heap->elements[heap->alloc - 1];
 
     heap->alloc -= 1;

@@ -1,34 +1,144 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "heap.h"
-#include <assert.h>
 
 #ifndef INFINITY
 #define INFINITY 65535
 #endif
 
-struct linked_list_elem {
-    int value;
-    int priority;
-    struct linked_list_elem * next;
+#define BLOCK_SIZE 31
+
+typedef struct node_t node_t, *heap_t;
+typedef struct edge_t edge_t;
+
+struct edge_t {
+    node_t * node;
+    edge_t * neighbor;
+    int cost;
 };
 
-typedef struct linked_list_elem linked_list_elem;
+struct node_t {
+    edge_t * edge;
+    node_t * previous;
+    int dist; // Distance from root.
+    int name; // Names are ints in graph.txt
+    int heap_index; // Position in heap.
+};
 
-linked_list_elem * newLinkedList() {
-    linked_list_elem * node = malloc(sizeof(linked_list_elem *) * 2);
-    node->next = NULL;
+edge_t * edge_root = 0, *e_next = 0;
+heap_t * heap;
+int heap_len;
+
+void add_edge(node_t * a, node_t * b, int dist)
+{
+    if (e_next == edge_root) {
+        edge_root = malloc(sizeof(edge_t) * (BLOCK_SIZE + 1));
+        edge_root[BLOCK_SIZE].neighbor = e_next;
+        e_next = edge_root + BLOCK_SIZE;
+    }
+    --e_next;
+
+    e_next->node = b;
+    e_next->cost = dist;
+    e_next->neighbor = a->edge;
+    a->edge = e_next;
+}
+
+void free_edges() {
+    for (; edge_root; edge_root = e_next) {
+        e_next = edge_root[BLOCK_SIZE].neighbor;
+        free(edge_root);
+    }
+}
+
+void set_dist(node_t * node, node_t * previous, int dist) {
+    int i, j;
+
+    if (node->previous && dist >= node->dist) return;
+
+    node->dist = dist;
+    node->previous = previous;
+
+    i = node->heap_index;
+    if (!i) i = ++heap_len;
+
+    for (; i > 1 && node->dist < heap[j = i/2]->dist; i = j) {
+        (heap[i] = heap[j])->heap_index = i;
+    }
+
+    heap[i] = node;
+    node->heap_index = i;
+}
+
+node_t * pop_queue()
+{
+    node_t * node, * temp;
+    int i, j;
+
+    if (!heap_len) return 0;
+
+    node = heap[1];
+    temp = heap[heap_len--];
+
+    for (i = 1; i < heap_len && (j = i * 2) <= heap_len; i = j) {
+        if (j < heap_len && heap[j]->dist > heap[j+1]->dist) j++;
+
+        if (heap[i]->dist >= temp->dist) break;
+        (heap[i] = heap[j])->heap_index = i;
+    }
+
+    heap[i] = temp;
+    temp->heap_index = 1;
 
     return node;
 }
 
-void freeLinkedList(linked_list_elem * node) {
-    while(node->next != NULL) {
-        linked_list_elem * temp = node;
-        node = node->next;
-        free(temp);
+void dijkstras(node_t * start)
+{
+    node_t * head;
+    edge_t * edge;
+
+    set_dist(start, start, 0);
+    while ((head = pop_queue())) {
+        for (edge = head->edge; edge; edge = edge->neighbor) {
+            set_dist(edge->node, head, head->dist + edge->cost);
+        }
     }
-    free(node);
+}
+
+void show_path(node_t * node)
+{
+    if (node->previous == node) {
+        printf("%d", node->name);
+    } else if (!node->previous) {
+        printf("%d(unreached)", node->name);
+    } else {
+        show_path(node->previous);
+        printf("-> %d(%d) ", node->name, node->dist);
+    }
+}
+
+void show_path_file(FILE * file, node_t * node)
+{
+    if (node->previous == node) {
+        fprintf(file, "%d", node->name);
+    } else if (!node->previous) {
+        fprintf(file, "%d(unreached)", node->name);
+    } else {
+        show_path_file(file, node->previous);
+        fprintf(file, " -> %d", node->name);
+    }
+}
+
+int getNextNode(node_t * node, int start) {
+    if (node->previous == node) {
+        return node->name;
+    } else if (!node->previous) {
+        return 0;
+    } else if (node->previous->name == start) {
+        return node->name;
+    } else {
+        return getNextNode(node->previous, start);
+    }
 }
 
 /**
@@ -70,13 +180,17 @@ int ** readInputFile(char * filename, int * length_ptr, int * start, int * goal)
 
     for (i = 0; i < highest; i++) {
         for (j = 0; j < highest; j++) {
-            matrix[i][j] = INFINITY;
+            if (i == j)
+                matrix[i][j] = 0;
+            else
+                matrix[i][j] = INFINITY;
         }
     }
 
     // Read node data.
     while (fscanf(infile, "%d$%d$%d", &node1, &node2, &weight) == 3) {
         matrix[node1 - 1][node2 - 1] = weight;
+        matrix[node2 - 1][node1 - 1] = weight;
     }
 
     // Read source.
@@ -98,25 +212,16 @@ int ** readInputFile(char * filename, int * length_ptr, int * start, int * goal)
  * of nodes traversed, which were traversed and the total distance travelled.
  * @args filename: the name of the file to output to.
  */
-void printSummary(char * filename, int source, int destination, linked_list_elem * path) {
+void printSummary(char * filename, int source, int destination, node_t * nodes) {
     FILE * outfile;
-    int totalDist = 0;
-
     outfile = fopen(filename, "w");
 
-    fprintf(outfile, "%s\n", "------------------------------");
+    fprintf(outfile, "-----------------------------------------\n");
     fprintf(outfile, "Summary:\n");
     fprintf(outfile, "Source: %d, Destination: %d\n", source, destination);
     fprintf(outfile, "Traversal: ");
-    while (path->next != NULL) {
-        fprintf(outfile, "%d -> ", path->value);
-        path = path->next;
-        totalDist += path->priority;
-    }
-    fprintf(outfile, "%d\n", path->value);
-
-    fprintf(outfile, "Total distance: %d\n", totalDist);
-    fprintf(outfile, "%s\n", "------------------------------");
+    show_path_file(outfile, nodes + (destination - 1));
+    fprintf(outfile, "\n-----------------------------------------\n");
 
     fclose(outfile);
 }
@@ -125,12 +230,29 @@ void printSummary(char * filename, int source, int destination, linked_list_elem
  * Prints a routing table for each node in the graph.
  * ex.
  *
- * To | Next Hop | Distance | Visited
- * ---|----------|----------|--------
+ *  To | Next Hop | Distance
+ * ----|----------|----------
  * @args filename: the name of the file to output to.
  */
-void printRoutingTable(char * filename) {
+void printRoutingTable(char * filename, node_t * nodes, int offset, int length, int ** matrix) {
+    FILE * outfile;
+    outfile = fopen(filename, "a");
 
+    int i;
+    fprintf(outfile, "Routing table for node %d\n", offset + 1);
+    fprintf(outfile, "%-3s %10s %-4s\n", "To", "Next Node", "Cost");
+
+
+    for (i = 1; i <= length; i++) {
+        // Find next node and cost
+        int next_node = getNextNode(nodes + i - 1, offset + 1);
+        int cost = matrix[next_node - 1][offset];
+        if (i != offset + 1)
+            fprintf(outfile, "%-3d %*s%d%*s %-4d\n", i, 5, "", next_node, 5, "", cost);
+    }
+    fprintf(outfile, "\n");
+
+    fclose(outfile);
 }
 
 /* Prints out the matrix. For debugging. */
@@ -142,90 +264,6 @@ void printMatrix(int ** matrix, int length) {
         }
         printf("|\n");
     }
-}
-
-/**
- * Implementation of Dijkstra's Algorithm.
- * @args matrix: the graph that you want to explore, implemented as an adjacency list.
- * @args start: the num value of the node in the graph that you want to start at.
- * @args goal: the num value of the node in the graph that you want to get to.
- * @return a list of ints showing the shortest path from start to goal.
- */
-linked_list_elem * dijkstra(int ** matrix, int start, int goal, int length) {
-    assert(start < length);
-
-    // Start path. Stored as a linked list.
-    linked_list_elem * path = newLinkedList();
-    path->value = 0;
-
-    Heap * pq = newHeap(length);
-    Heap * old = newHeap(length);
-
-    int dist[length]; // Array of distances from start;
-    dist[start - 1] = 0;
-
-    int i, alt, pri;
-    // Get nodes connected to start, add to queue.
-    for (i = 1; i <= length; i++) {
-        if (i != start) {
-            dist[i - 1] = INFINITY;
-        }
-    }
-
-    insertValue(pq, start, 0);
-
-    while (getCount(pq) != 0) {
-        // Pop the first element off the queue.
-        heap_elem u = popMinValue(pq);
-        printf("Element u has data %d and priority %d\n", u.data, u.priority);
-        printf("%d elements left in queue.\n", getCount(pq));
-        addElement(old, u);
-
-        // Get connected nodes, add to queue.
-        for (i = 1; i <= length; i++) {
-            pri = matrix[u.data - 1][i - 1];
-            if (pri != INFINITY) {
-                if (elementInHeap(old, i - 1) == 0) {
-                    if (dist[u.data] == INFINITY)
-                        alt = u.priority;
-                    else
-                        alt = dist[u.data] + u.priority;
-
-                    if (alt < dist[u.data]) {
-                        dist[u.data] = alt;
-                        // Create new path element.
-                        if (path->value == 0) {
-                            path->value = u.data;
-                            path->priority = u.priority;
-                        } else {
-                            linked_list_elem * node = path;
-
-                            while(node->next != NULL) {
-                                node = node->next;
-                            }
-
-                            node->next = newLinkedList();
-                            node = node->next;
-                            node->value = u.data;
-                            node->priority = u.priority;
-                        }
-                    }
-
-                    insertValue(pq, i, pri);
-                    printf("Inserted node %d with priority %d\n", i, pri);
-                } else if (elementInHeap(old, i - 1) == 1) {
-                    updatePriority(pq, i, pri);
-                    printf("Updated node %d with new priority %d\n", i, pri);
-                }
-            }
-        }
-    }
-
-
-    // Clean up the memory.
-    freeHeap(pq);
-    freeHeap(old);
-    return path;
 }
 
 int main(int args, char** argv) {
@@ -248,19 +286,47 @@ int main(int args, char** argv) {
 
     weightMatrix = readInputFile(filename, length_ptr, start_ptr, goal_ptr);
 
-    // Perform Dijkstra's, output results.
-    linked_list_elem * path = dijkstra(weightMatrix, start, goal, length);
+    int i, j, k, cost;
 
-    printSummary("output.txt", start, goal, path);
+    for (i = 0; i < length; i++) {
+
+        node_t * nodes = calloc(sizeof(node_t), length);
+
+        for (j = 0; j < length; j++) {
+            nodes[j].name = j+1;
+        }
+
+        for (j = 0; j < length; j++) {
+            for (k = 0; k < length; k++) {
+                if (j == k) continue;
+                cost = weightMatrix[j][k];
+                if (cost == INFINITY) continue;
+                add_edge(nodes + j, nodes + k, cost);
+            }
+        }
+
+        heap = calloc(sizeof(heap_t), length + 1);
+        heap_len = 0;
+
+        // Run first dijkstra's for start.
+        dijkstras(nodes + i);
+
+        if (i == 0)
+            printSummary("output.txt", start, goal, nodes);
+
+        printRoutingTable("output.txt", nodes, i, length, weightMatrix);
+
+        free(heap);
+        free(nodes);
+        free_edges();
+    }
 
     // Free memory.
-    int i;
     for (i = 0; i < length; i++) {
         free(weightMatrix[i]);
     }
 
     free(weightMatrix);
-    freeLinkedList(path);
 
     return 0;
 }
