@@ -1,0 +1,21 @@
+use bookfetch;
+
+delete from recommendations;
+delete from modifications;
+delete from ticket;
+delete from employee;
+delete from keywords;
+delete from subcategory;
+delete from category;
+delete from course;
+delete from book;
+delete from book_id;
+delete from purchase;
+delete from instructor;
+delete from department;
+delete from book_order;
+delete from cart;
+delete from student;
+delete from university;
+delete from phone_number;
+delete from user;
